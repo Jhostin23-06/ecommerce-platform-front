@@ -32,11 +32,17 @@ import { InternalJobsModule } from './modules/internal-jobs/internal-jobs.module
       useFactory: (configService: ConfigService) => {
         const synchronizeValue = (configService.get<string>('DB_SYNCHRONIZE') ?? 'false').toLowerCase();
         const synchronize = synchronizeValue === 'true';
+        const nodeEnv = (configService.get<string>('NODE_ENV') ?? 'development').toLowerCase();
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+
+        if (nodeEnv === 'production' && !databaseUrl) {
+          throw new Error('DATABASE_URL is required in production');
+        }
 
         return {
         type: 'postgres' as const,
         url:
-          configService.get<string>('DATABASE_URL') ??
+          databaseUrl ??
           'postgresql://ecom_user:ecom_pass@localhost:5433/ecommerce_dev',
         autoLoadEntities: true,
         synchronize,

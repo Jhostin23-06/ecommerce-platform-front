@@ -15,6 +15,12 @@ loadDotEnv(rootEnvPath);
 const databaseUrl =
   process.env.DATABASE_URL ?? "postgresql://ecom_user:ecom_pass@localhost:5433/ecommerce_dev";
 const statusOnly = process.argv.includes("--status");
+const isProduction = (process.env.NODE_ENV ?? "development").toLowerCase() === "production";
+
+if (isProduction && !process.env.DATABASE_URL) {
+  console.error("[migrations] Failed: DATABASE_URL is required in production.");
+  process.exit(1);
+}
 
 const pool = new pg.Pool({
   connectionString: databaseUrl,

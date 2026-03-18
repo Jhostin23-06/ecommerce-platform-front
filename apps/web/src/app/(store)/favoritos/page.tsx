@@ -13,7 +13,6 @@ import { useAuth } from "@/providers/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProductImageFrame } from "@/components/common/product-image-frame";
 
 function productHref(product: Product) {
   return `/tienda/${encodeURIComponent(product.tenantId)}/producto/${encodeURIComponent(product.slug)}`;
@@ -136,13 +135,13 @@ export default function FavoritesPage() {
               <Card key={product.id} className="overflow-hidden">
                 <div className="relative h-48">
                   {product.images[0]?.url ? (
-                    <ProductImageFrame
+                    <Image
                       src={product.images[0].url}
                       alt={product.images[0]?.altText ?? product.name}
-                      className="h-full w-full"
+                      fill
                       sizes="(min-width: 1280px) 28vw, (min-width: 640px) 42vw, 100vw"
                       quality={90}
-                      imageClassName="p-3"
+                      className="object-cover object-center"
                     />
                   ) : null}
                 </div>

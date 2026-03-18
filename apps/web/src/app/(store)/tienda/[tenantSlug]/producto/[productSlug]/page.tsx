@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ProductImageFrame } from "@/components/common/product-image-frame";
 
 function formatVariantOptions(variant: ProductVariant) {
   return variant.options.map((option) => `${option.name}: ${option.value}`).join(" | ");
@@ -266,14 +265,14 @@ export default function ProductDetailPage() {
             <div className="relative overflow-hidden rounded-3xl border border-border">
               <div className="relative h-[420px] w-full">
                 {selectedImage ? (
-                  <ProductImageFrame
+                  <Image
                     src={selectedImage.url}
                     alt={selectedImage.altText ?? product.name}
-                    className="h-full w-full"
+                    fill
                     sizes="(min-width: 1024px) 52vw, 100vw"
                     quality={95}
-                    imageClassName="p-5"
                     priority
+                    className="object-cover object-center"
                   />
                 ) : null}
               </div>
@@ -290,13 +289,13 @@ export default function ProductDetailPage() {
                       selectedImageIndex === index ? "border-primary" : "border-border",
                     )}
                   >
-                    <ProductImageFrame
+                    <Image
                       src={image.url}
                       alt={image.altText ?? product.name}
-                      className="h-full w-full"
+                      fill
                       sizes="25vw"
                       quality={85}
-                      imageClassName="p-2"
+                      className="object-cover object-center"
                     />
                   </button>
                 ))}

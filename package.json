@@ -1,0 +1,24 @@
+{
+  "name": "ecommerce-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "apps/worker"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @ecommerce/api",
+    "dev:web": "npm run dev -w @ecommerce/web",
+    "dev:worker": "npm run dev -w @ecommerce/worker",
+    "build:api": "npm run build -w @ecommerce/api",
+    "build:web": "npm run build -w @ecommerce/web",
+    "build:worker": "npm run build -w @ecommerce/worker",
+    "start:api": "npm run start -w @ecommerce/api",
+    "start:web": "npm run start -w @ecommerce/web",
+    "start:worker": "npm run start -w @ecommerce/worker",
+    "migrate:api": "npm run migrate:run -w @ecommerce/api",
+    "test:api": "npm run test -w @ecommerce/api",
+    "seed:dev": "node scripts/seed-dev.mjs"
+  }
+}

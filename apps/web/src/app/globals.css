@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
+
+  --color-background: oklch(98.5% 0.008 102);
+  --color-foreground: oklch(27% 0.04 236);
+
+  --color-primary: oklch(63% 0.17 183);
+  --color-primary-foreground: oklch(99% 0.005 180);
+
+  --color-secondary: oklch(92% 0.04 82);
+  --color-secondary-foreground: oklch(35% 0.03 82);
+
+  --color-muted: oklch(94% 0.015 246);
+  --color-muted-foreground: oklch(49% 0.03 246);
+
+  --color-accent: oklch(90% 0.08 67);
+  --color-accent-foreground: oklch(30% 0.04 67);
+
+  --color-destructive: oklch(62% 0.21 25);
+  --color-destructive-foreground: oklch(98% 0.01 25);
+
+  --color-card: oklch(99% 0.003 210);
+  --color-card-foreground: oklch(29% 0.04 236);
+
+  --color-border: oklch(88% 0.012 248);
+  --color-ring: oklch(63% 0.17 183);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-sans text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 15% -10%, color-mix(in oklab, var(--color-primary) 18%, transparent), transparent 45%),
+      radial-gradient(circle at 88% 0%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 42%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply border border-border/60 bg-card/70 backdrop-blur;
+  }
+
+  .fade-up {
+    animation: fade-up 420ms ease-out both;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

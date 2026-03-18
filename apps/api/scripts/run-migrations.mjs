@@ -24,6 +24,7 @@ if (isProduction && !process.env.DATABASE_URL) {
 
 const pool = new pg.Pool({
   connectionString: databaseUrl,
+  ssl: resolveDatabaseSsl(),
 });
 
 const MIGRATIONS_TABLE = "schema_migrations";
@@ -124,6 +125,33 @@ function redactDatabaseUrl(url) {
   } catch {
     return "DATABASE_URL";
   }
+}
+
+function resolveDatabaseSsl() {
+  const raw = (process.env.DATABASE_SSL ?? "").trim().toLowerCase();
+  if (raw === "true" || raw === "1" || raw === "require") {
+    return { rejectUnauthorized: false };
+  }
+
+  if (raw === "false" || raw === "0" || raw === "disable") {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(databaseUrl);
+    const sslMode = parsed.searchParams.get("sslmode")?.toLowerCase();
+    if (sslMode === "require") {
+      return { rejectUnauthorized: false };
+    }
+
+    if (parsed.hostname.endsWith(".render.com")) {
+      return { rejectUnauthorized: false };
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
 }
 
 main()

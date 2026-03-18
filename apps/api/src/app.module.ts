@@ -34,19 +34,26 @@ import { InternalJobsModule } from './modules/internal-jobs/internal-jobs.module
         const synchronize = synchronizeValue === 'true';
         const nodeEnv = (configService.get<string>('NODE_ENV') ?? 'development').toLowerCase();
         const databaseUrl = configService.get<string>('DATABASE_URL');
+        const databaseSsl = resolveDatabaseSsl(databaseUrl, configService.get<string>('DATABASE_SSL'));
 
         if (nodeEnv === 'production' && !databaseUrl) {
           throw new Error('DATABASE_URL is required in production');
         }
 
         return {
-        type: 'postgres' as const,
-        url:
-          databaseUrl ??
-          'postgresql://ecom_user:ecom_pass@localhost:5433/ecommerce_dev',
-        autoLoadEntities: true,
-        synchronize,
-      };
+          type: 'postgres' as const,
+          url:
+            databaseUrl ??
+            'postgresql://ecom_user:ecom_pass@localhost:5433/ecommerce_dev',
+          ssl: databaseSsl,
+          extra: databaseSsl
+            ? {
+                ssl: databaseSsl,
+              }
+            : undefined,
+          autoLoadEntities: true,
+          synchronize,
+        };
       },
     }),
     TenantsModule,
@@ -69,3 +76,37 @@ import { InternalJobsModule } from './modules/internal-jobs/internal-jobs.module
   providers: [RedisService],
 })
 export class AppModule {}
+
+function resolveDatabaseSsl(
+  databaseUrl: string | undefined,
+  databaseSslValue: string | undefined,
+): false | { rejectUnauthorized: false } {
+  const raw = (databaseSslValue ?? '').trim().toLowerCase();
+  if (raw === 'true' || raw === '1' || raw === 'require') {
+    return { rejectUnauthorized: false };
+  }
+
+  if (raw === 'false' || raw === '0' || raw === 'disable') {
+    return false;
+  }
+
+  if (!databaseUrl) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(databaseUrl);
+    const sslMode = parsed.searchParams.get('sslmode')?.toLowerCase();
+    if (sslMode === 'require') {
+      return { rejectUnauthorized: false };
+    }
+
+    if (parsed.hostname.endsWith('.render.com')) {
+      return { rejectUnauthorized: false };
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+}

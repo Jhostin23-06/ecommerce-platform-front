@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserRole } from '../auth/enums/user-role.enum';
@@ -46,6 +46,16 @@ export type CouponEvaluationResult = {
   eligible: boolean;
   discountAmount: number;
   feedback: CouponEvaluationFeedback;
+};
+
+export type PublicCouponPromotion = {
+  id: string;
+  code: string;
+  scope: CouponScope;
+  type: CouponType;
+  value: string;
+  headline: string;
+  details: string;
 };
 
 @Injectable()
@@ -100,6 +110,27 @@ export class CouponsService {
     }
 
     return qb.getMany();
+  }
+
+  async listPublicPromotions(tenantId: string): Promise<PublicCouponPromotion[]> {
+    const normalizedTenantId = tenantId?.trim();
+    if (!normalizedTenantId) {
+      throw new BadRequestException('tenantId es obligatorio');
+    }
+
+    const now = new Date();
+    const coupons = await this.couponsRepository
+      .createQueryBuilder('coupon')
+      .where('coupon.tenantId = :tenantId', { tenantId: normalizedTenantId })
+      .andWhere('coupon.isActive = true')
+      .andWhere('(coupon.startsAt IS NULL OR coupon.startsAt <= :now)', { now })
+      .andWhere('(coupon.endsAt IS NULL OR coupon.endsAt >= :now)', { now })
+      .orderBy('coupon.createdAt', 'DESC')
+      .limit(6)
+      .getMany();
+
+    const promotions = await Promise.all(coupons.map((coupon) => this.buildPublicPromotion(coupon)));
+    return promotions;
   }
 
   async update(couponId: string, updateCouponDto: UpdateCouponDto, actor: Actor): Promise<Coupon> {
@@ -457,5 +488,87 @@ export class CouponsService {
 
   private toMoney(value: number): string {
     return value.toFixed(2);
+  }
+
+  private async buildPublicPromotion(coupon: Coupon): Promise<PublicCouponPromotion> {
+    const discountLabel = this.formatDiscountLabel(coupon);
+    const rules = coupon.rules ?? {};
+    const targetProducts = await this.loadProductReferences(rules.productIds);
+    const targetCategories = await this.loadCategoryReferences(rules.categoryIds);
+    const requiredProducts = await this.loadProductReferences(rules.requiredProductIds ?? rules.productIds);
+    const requiredCategories = await this.loadCategoryReferences(rules.requiredCategoryIds ?? rules.categoryIds);
+
+    if (coupon.scope === CouponScope.VOLUME) {
+      const quantity = rules.minQuantity ?? 0;
+      const targetLabel = this.formatTargetLabels(targetProducts, targetCategories);
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        scope: coupon.scope,
+        type: coupon.type,
+        value: coupon.value,
+        headline: `${discountLabel} por volumen`,
+        details: targetLabel
+          ? `Lleva ${quantity} o mas unidades de ${targetLabel} y activa ${coupon.code}.`
+          : `Lleva ${quantity} o mas unidades y activa ${coupon.code}.`,
+      };
+    }
+
+    if (coupon.scope === CouponScope.BUNDLE) {
+      const requiredLabel = this.formatTargetLabels(requiredProducts, requiredCategories);
+      return {
+        id: coupon.id,
+        code: coupon.code,
+        scope: coupon.scope,
+        type: coupon.type,
+        value: coupon.value,
+        headline: `${discountLabel} en bundle`,
+        details: requiredLabel
+          ? `Combina ${requiredLabel} y usa ${coupon.code}.`
+          : `Completa el bundle y usa ${coupon.code}.`,
+      };
+    }
+
+    return {
+      id: coupon.id,
+      code: coupon.code,
+      scope: coupon.scope,
+      type: coupon.type,
+      value: coupon.value,
+      headline: `${discountLabel} en tu pedido`,
+      details: `Usa ${coupon.code} para activar el descuento en esta tienda.`,
+    };
+  }
+
+  private formatDiscountLabel(coupon: Coupon): string {
+    if (coupon.type === CouponType.PERCENTAGE) {
+      return `${Number(coupon.value)}% dscto`;
+    }
+
+    return `S/ ${Number(coupon.value).toFixed(2)} OFF`;
+  }
+
+  private formatTargetLabels(
+    products?: CouponRuleReference[],
+    categories?: CouponRuleReference[],
+  ): string | null {
+    const labels = [
+      ...(products ?? []).map((entry) => entry.label),
+      ...(categories ?? []).map((entry) => entry.label),
+    ];
+
+    if (!labels.length) {
+      return null;
+    }
+
+    if (labels.length === 1) {
+      return labels[0];
+    }
+
+    if (labels.length === 2) {
+      return `${labels[0]} y ${labels[1]}`;
+    }
+
+    return `${labels.slice(0, 2).join(', ')} y mas`;
   }
 }

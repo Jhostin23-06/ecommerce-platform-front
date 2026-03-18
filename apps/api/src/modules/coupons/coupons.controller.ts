@@ -16,21 +16,30 @@ type ActorRequest = {
 };
 
 @Controller('coupons')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.PLATFORM_SUPERADMIN, UserRole.TENANT_ADMIN)
 export class CouponsController {
   constructor(private readonly couponsService: CouponsService) {}
 
+  @Get('public')
+  listPublic(@Query('tenantId') tenantId: string) {
+    return this.couponsService.listPublicPromotions(tenantId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PLATFORM_SUPERADMIN, UserRole.TENANT_ADMIN)
   @Post()
   create(@Body() createCouponDto: CreateCouponDto, @Req() req: ActorRequest) {
     return this.couponsService.create(createCouponDto, req.user);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PLATFORM_SUPERADMIN, UserRole.TENANT_ADMIN)
   @Get()
   list(@Query() query: ListCouponsDto, @Req() req: ActorRequest) {
     return this.couponsService.list(query, req.user);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PLATFORM_SUPERADMIN, UserRole.TENANT_ADMIN)
   @Patch(':id')
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -40,6 +49,8 @@ export class CouponsController {
     return this.couponsService.update(id, updateCouponDto, req.user);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PLATFORM_SUPERADMIN, UserRole.TENANT_ADMIN)
   @Delete(':id')
   delete(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: ActorRequest) {
     return this.couponsService.delete(id, req.user);

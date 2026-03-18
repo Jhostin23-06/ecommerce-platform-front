@@ -151,6 +151,16 @@ export type Coupon = {
   updatedAt: string;
 };
 
+export type PublicCouponPromotion = {
+  id: string;
+  code: string;
+  scope: "order" | "volume" | "bundle";
+  type: "percentage" | "fixed";
+  value: string;
+  headline: string;
+  details: string;
+};
+
 export type OrderItem = {
   id: string;
   orderId: string;

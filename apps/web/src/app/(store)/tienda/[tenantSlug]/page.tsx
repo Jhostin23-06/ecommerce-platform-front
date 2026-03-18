@@ -4,11 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Loader2, Search, ShoppingCart, SlidersHorizontal, Star } from "lucide-react";
+import { ArrowRight, Heart, Loader2, Search, ShoppingCart, SlidersHorizontal, Star, Tag, X } from "lucide-react";
 import { ApiError, apiRequest, resolveTenantByKey } from "@/lib/api";
 import { cartChanged, notify } from "@/lib/ui-events";
 import { cn, formatMoney } from "@/lib/utils";
-import type { Category, PaginatedProducts, Product, Tenant, WishlistResponse } from "@/lib/types";
+import type { Category, PaginatedProducts, Product, PublicCouponPromotion, Tenant, WishlistResponse } from "@/lib/types";
 import { useAuth } from "@/providers/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ export default function StorePage() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [promotions, setPromotions] = useState<PublicCouponPromotion[]>([]);
   const [wishlistProductIds, setWishlistProductIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false);
@@ -52,6 +53,8 @@ export default function StorePage() {
   const [addingProductId, setAddingProductId] = useState<string | null>(null);
   const [filtersTouched, setFiltersTouched] = useState(false);
   const [togglingWishlistId, setTogglingWishlistId] = useState<string | null>(null);
+  const [activePromotionIndex, setActivePromotionIndex] = useState(0);
+  const [dismissedPromotionIds, setDismissedPromotionIds] = useState<string[]>([]);
   const filterRequestIdRef = useRef(0);
 
   const tenantKey = decodeURIComponent(params.tenantSlug);
@@ -78,15 +81,17 @@ export default function StorePage() {
       const tenantData = await resolveTenantByKey(tenantKey);
       setTenant(tenantData);
 
-      const [categoriesData, productsData] = await Promise.all([
+      const [categoriesData, productsData, promotionsData] = await Promise.all([
         apiRequest<Category[]>(`/catalog/categories?tenantId=${tenantData.id}`),
         apiRequest<PaginatedProducts>(
           `/catalog/products?tenantId=${tenantData.id}&page=1&limit=50&isActive=true&sortBy=${sortBy}`,
         ),
+        apiRequest<PublicCouponPromotion[]>(`/coupons/public?tenantId=${tenantData.id}`),
       ]);
 
       setCategories(categoriesData);
       setProducts(productsData.items);
+      setPromotions(promotionsData);
       await syncWishlist(tenantData.id);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "No se pudo cargar la tienda";
@@ -168,6 +173,25 @@ export default function StorePage() {
 
     return () => clearTimeout(timeout);
   }, [categoryId, filtersTouched, inStockOnly, maxPrice, minPrice, search, sortBy, tenant]);
+
+  const visiblePromotions = useMemo(
+    () => promotions.filter((promotion) => !dismissedPromotionIds.includes(promotion.id)),
+    [dismissedPromotionIds, promotions],
+  );
+  const activePromotion =
+    visiblePromotions.length > 0 ? visiblePromotions[activePromotionIndex % visiblePromotions.length] : null;
+
+  useEffect(() => {
+    if (visiblePromotions.length <= 1) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setActivePromotionIndex((previous) => (previous + 1) % visiblePromotions.length);
+    }, 6000);
+
+    return () => clearInterval(timer);
+  }, [visiblePromotions.length]);
 
   async function addToCart(productId: string) {
     setAddingProductId(productId);
@@ -498,6 +522,49 @@ export default function StorePage() {
           })}
         </section>
       )}
+
+      {activePromotion ? (
+        <div className="pointer-events-none fixed bottom-4 right-4 z-40 w-[min(24rem,calc(100vw-1.5rem))]">
+          <div className="pointer-events-auto overflow-hidden rounded-[1.75rem] border border-amber-300/60 bg-[linear-gradient(135deg,rgba(255,247,237,0.98),rgba(254,215,170,0.95))] shadow-[0_24px_80px_-28px_rgba(217,119,6,0.55)] backdrop-blur">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.28),transparent_42%)]" />
+            <div className="relative space-y-3 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-900">
+                  <Tag className="h-3.5 w-3.5" />
+                  Oferta activa
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-400/30 bg-white/65 text-amber-900 transition hover:bg-white"
+                  onClick={() => setDismissedPromotionIds((previous) => [...previous, activePromotion.id])}
+                  aria-label="Ocultar promoción"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-lg font-black tracking-tight text-amber-950">{activePromotion.headline}</p>
+                <p className="text-sm leading-6 text-amber-900/85">{activePromotion.details}</p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-amber-950 px-3 py-1.5 text-sm font-semibold text-amber-50">
+                  Codigo: {activePromotion.code}
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-amber-950 transition hover:text-amber-700"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
+                  Ver productos
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

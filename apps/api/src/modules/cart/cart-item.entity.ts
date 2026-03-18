@@ -35,6 +35,9 @@ export class CartItem {
   @Column({ type: 'varchar', length: 80, nullable: true })
   skuSnapshot!: string | null;
 
+  @Column({ type: 'varchar', length: 2048, nullable: true })
+  productImageUrlSnapshot!: string | null;
+
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   unitPrice!: string;
 

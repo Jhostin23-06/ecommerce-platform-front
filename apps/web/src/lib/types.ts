@@ -108,6 +108,7 @@ export type CartItem = {
   productVariantId: string | null;
   productNameSnapshot: string;
   skuSnapshot: string | null;
+  productImageUrlSnapshot: string | null;
   unitPrice: string;
   quantity: number;
   lineTotal: string;

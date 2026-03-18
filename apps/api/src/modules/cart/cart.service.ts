@@ -63,12 +63,14 @@ export class CartService {
     const productNameSnapshot = selectedVariant ? `${product.name} - ${selectedVariant.name}` : product.name;
     const unitPrice = this.toMoney(selectedVariant ? selectedVariant.price : product.price);
     const skuSnapshot = selectedVariant?.sku ?? product.sku;
+    const productImageUrlSnapshot = product.images?.[0]?.url ?? null;
 
     if (existingItem) {
       existingItem.quantity = targetQuantity;
       existingItem.unitPrice = unitPrice;
       existingItem.productNameSnapshot = productNameSnapshot;
       existingItem.skuSnapshot = skuSnapshot;
+      existingItem.productImageUrlSnapshot = productImageUrlSnapshot;
       existingItem.lineTotal = this.toMoney(existingItem.quantity * Number(existingItem.unitPrice));
       await this.cartItemsRepository.save(existingItem);
     } else {
@@ -78,6 +80,7 @@ export class CartService {
         productVariantId: selectedVariant?.id ?? null,
         productNameSnapshot,
         skuSnapshot,
+        productImageUrlSnapshot,
         unitPrice,
         quantity: addCartItemDto.quantity,
         lineTotal: this.toMoney(addCartItemDto.quantity * Number(unitPrice)),

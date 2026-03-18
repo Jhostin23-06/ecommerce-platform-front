@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -496,13 +497,27 @@ export default function CartPage() {
             <CardContent className="space-y-3">
               {cart.items.map((item) => (
                 <div key={item.id} className="rounded-xl border border-border p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold">{item.productNameSnapshot}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Unitario: {formatMoney(item.unitPrice, cart.currency)} | Linea:{" "}
-                        {formatMoney(item.lineTotal, cart.currency)}
-                      </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                        {item.productImageUrlSnapshot ? (
+                          <Image
+                            src={item.productImageUrlSnapshot}
+                            alt={item.productNameSnapshot}
+                            fill
+                            sizes="64px"
+                            quality={85}
+                            className="object-cover object-center"
+                          />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="truncate font-semibold">{item.productNameSnapshot}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Unitario: {formatMoney(item.unitPrice, cart.currency)} | Linea:{" "}
+                          {formatMoney(item.lineTotal, cart.currency)}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">

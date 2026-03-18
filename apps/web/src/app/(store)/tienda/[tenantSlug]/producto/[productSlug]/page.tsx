@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ProductImageFrame } from "@/components/common/product-image-frame";
 
 function formatVariantOptions(variant: ProductVariant) {
   return variant.options.map((option) => `${option.name}: ${option.value}`).join(" | ");
@@ -262,16 +263,17 @@ export default function ProductDetailPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-3">
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-slate-50 via-white to-slate-100">
+            <div className="relative overflow-hidden rounded-3xl border border-border">
               <div className="relative h-[420px] w-full">
                 {selectedImage ? (
-                  <Image
+                  <ProductImageFrame
                     src={selectedImage.url}
                     alt={selectedImage.altText ?? product.name}
-                    fill
+                    className="h-full w-full"
                     sizes="(min-width: 1024px) 52vw, 100vw"
                     quality={95}
-                    className="object-contain p-6"
+                    imageClassName="p-5"
+                    priority
                   />
                 ) : null}
               </div>
@@ -288,13 +290,13 @@ export default function ProductDetailPage() {
                       selectedImageIndex === index ? "border-primary" : "border-border",
                     )}
                   >
-                    <Image
+                    <ProductImageFrame
                       src={image.url}
                       alt={image.altText ?? product.name}
-                      fill
+                      className="h-full w-full"
                       sizes="25vw"
                       quality={85}
-                      className="object-contain p-2"
+                      imageClassName="p-2"
                     />
                   </button>
                 ))}

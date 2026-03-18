@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ProductImageFrame } from "@/components/common/product-image-frame";
 
 type ProductSortOption = "newest" | "oldest" | "price_asc" | "price_desc" | "rating_desc" | "name_asc";
 
@@ -405,15 +406,15 @@ export default function StorePage() {
 
             return (
               <Card key={product.id} className="overflow-hidden border-border/80 bg-card/90">
-                <div className="relative h-52 w-full bg-gradient-to-br from-slate-50 via-white to-slate-100">
+                <div className="relative h-52 w-full">
                   {imageUrl ? (
-                    <Image
+                    <ProductImageFrame
                       src={imageUrl}
                       alt={product.images[0]?.altText ?? product.name}
-                      fill
+                      className="h-full w-full"
                       sizes="(min-width: 1280px) 28vw, (min-width: 640px) 42vw, 100vw"
                       quality={90}
-                      className="object-contain p-4"
+                      imageClassName="p-3"
                     />
                   ) : null}
                   <button

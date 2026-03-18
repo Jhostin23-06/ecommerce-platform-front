@@ -133,9 +133,16 @@ export default function FavoritesPage() {
             const availableStock = product.stock - (product.reservedStock ?? 0);
             return (
               <Card key={product.id} className="overflow-hidden">
-                <div className="relative h-48 bg-muted">
+                <div className="relative h-48 bg-gradient-to-br from-slate-50 via-white to-slate-100">
                   {product.images[0]?.url ? (
-                    <Image src={product.images[0].url} alt={product.images[0]?.altText ?? product.name} fill className="object-cover" />
+                    <Image
+                      src={product.images[0].url}
+                      alt={product.images[0]?.altText ?? product.name}
+                      fill
+                      sizes="(min-width: 1280px) 28vw, (min-width: 640px) 42vw, 100vw"
+                      quality={90}
+                      className="object-contain p-4"
+                    />
                   ) : null}
                 </div>
                 <CardContent className="space-y-4 pt-4">

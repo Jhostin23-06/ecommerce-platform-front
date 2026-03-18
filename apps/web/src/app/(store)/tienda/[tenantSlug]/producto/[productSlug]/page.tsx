@@ -262,14 +262,16 @@ export default function ProductDetailPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-3">
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-muted">
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-slate-50 via-white to-slate-100">
               <div className="relative h-[420px] w-full">
                 {selectedImage ? (
                   <Image
                     src={selectedImage.url}
                     alt={selectedImage.altText ?? product.name}
                     fill
-                    className="object-cover"
+                    sizes="(min-width: 1024px) 52vw, 100vw"
+                    quality={95}
+                    className="object-contain p-6"
                   />
                 ) : null}
               </div>
@@ -282,11 +284,18 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={() => setSelectedImageIndex(index)}
                     className={cn(
-                      "relative h-24 overflow-hidden rounded-2xl border bg-muted",
+                      "relative h-24 overflow-hidden rounded-2xl border bg-gradient-to-br from-slate-50 via-white to-slate-100",
                       selectedImageIndex === index ? "border-primary" : "border-border",
                     )}
                   >
-                    <Image src={image.url} alt={image.altText ?? product.name} fill className="object-cover" />
+                    <Image
+                      src={image.url}
+                      alt={image.altText ?? product.name}
+                      fill
+                      sizes="25vw"
+                      quality={85}
+                      className="object-contain p-2"
+                    />
                   </button>
                 ))}
               </div>
